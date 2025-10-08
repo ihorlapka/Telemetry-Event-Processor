@@ -1,0 +1,38 @@
+plugins {
+    id 'java'
+    id 'application'
+    id "com.github.davidmc24.gradle.plugin.avro" version '1.9.1'
+}
+
+group = 'com.iot.alerts.avro.schemas'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://packages.confluent.io/maven/")
+    }
+}
+
+avro {
+    stringType = 'String'
+    fieldVisibility = 'PUBLIC'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir file("${buildDir}/generated-main-avro-java")
+        }
+    }
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    implementation 'org.apache.avro:avro:1.11.4'
+}
+
+test {
+    useJUnitPlatform()
+}

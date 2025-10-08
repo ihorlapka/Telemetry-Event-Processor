@@ -1,0 +1,65 @@
+{
+  "type": "record",
+  "name": "Alert",
+  "namespace": "com.iot.alerts",
+  "fields": [
+    {
+      "name": "alertId",
+      "type": "string"
+    },
+    {
+      "name": "deviceId",
+      "type": "string"
+    },
+    {
+      "name": "ruleId",
+      "type": "string"
+    },
+    {
+      "name": "severity",
+      "type": [
+        "null",
+        {
+          "type": "enum",
+          "name": "SeverityLevel",
+          "symbols": [
+            "INFO",
+            "WARNING",
+            "CRITICAL"
+          ]
+        }
+      ],
+      "doc": "The level of alert severity",
+      "default": null
+    },
+    {
+      "name": "timestamp",
+      "type": [
+        "null",
+        {
+          "type": "long",
+          "logicalType": "timestamp-millis"
+        }
+      ],
+      "doc": "The time when alert was triggered",
+      "default": null
+    },
+    {
+      "name": "message",
+      "type": [
+        "null",
+        "string"
+      ],
+      "doc": "Short description"
+    },
+    {
+      "name": "actualValue",
+      "type": [
+        "null",
+        "float"
+      ],
+      "default": null,
+      "doc": "Telemetry threshold which triggered alert"
+    }
+  ]
+}

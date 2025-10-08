@@ -1,1 +1,3 @@
 rootProject.name = 'telemetry-event-processor'
+
+include 'avro-schemas'
