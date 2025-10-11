@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "RuleCompoundKey",
+  "namespace": "com.iot.alerts",
+  "fields": [
+    {
+      "name": "ruleId",
+      "type": "string"
+    },
+    {
+      "name": "deviceId",
+      "type": "string"
+    }
+  ]
+}

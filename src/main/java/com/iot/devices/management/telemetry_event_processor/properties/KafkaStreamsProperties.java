@@ -25,6 +25,9 @@ public class KafkaStreamsProperties {
     @Value("${" + PROPERTIES_PREFIX + ".input-telemetries-topic}")
     private String telemetryInputTopic;
 
+    @Value("${" + PROPERTIES_PREFIX + ".input-alerting-rules-topic}")
+    private String alertingRulesInputTopic;
+
     @Value("${" + PROPERTIES_PREFIX + ".output-alerts-topic}")
     private String alertsOutputTopic;
 

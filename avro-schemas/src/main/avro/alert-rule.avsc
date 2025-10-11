@@ -1,0 +1,81 @@
+{
+  "type": "record",
+  "name": "AlertRule",
+  "namespace": "com.iot.alerts",
+  "fields": [
+    {
+      "name": "ruleId",
+      "type": "string"
+    },
+    {
+      "name": "deviceId",
+      "type": "string"
+    },
+    {
+      "name": "metricName",
+      "type": {
+        "type": "enum",
+        "name": "MetricType",
+        "symbols": [
+          "UNKNOWN",
+          "VOLTAGE",
+          "CURRENT",
+          "POWER",
+          "TEMPERATURE",
+          "ENERGY_CONSUMED",
+          "BATTERY_LEVEL",
+          "TAMPER",
+          "OPENED"
+        ]
+      },
+      "doc": "The field of telemetry which was verified",
+      "default": "UNKNOWN"
+    },
+    {
+      "name": "thresholdType",
+      "type": {
+        "type": "enum",
+        "name": "ThresholdType",
+        "symbols": [
+          "UNKNOWN",
+          "GREATER_THAN",
+          "LESS_THAN",
+          "EQUAL_TO",
+          "NOT_EQUAL_TO"
+        ]
+      },
+      "doc": "The type of verification",
+      "default": "UNKNOWN"
+    },
+    {
+      "name": "thresholdValue",
+      "type": [
+        "null",
+        "float"
+      ],
+      "doc": "The threshold value to compare",
+      "default": null
+    },
+    {
+      "name": "severity",
+      "type": {
+        "type": "enum",
+        "name": "SeverityLevel",
+        "symbols": [
+          "UNKNOWN",
+          "INFO",
+          "WARNING",
+          "CRITICAL"
+        ]
+      },
+      "doc": "The level of severity",
+      "default": "UNKNOWN"
+    },
+    {
+      "name": "isEnabled",
+      "type": "boolean",
+      "default": true,
+      "doc": "Specifies if this rule is enabled for checking"
+    }
+  ]
+}

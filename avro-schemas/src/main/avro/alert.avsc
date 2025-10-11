@@ -17,20 +17,18 @@
     },
     {
       "name": "severity",
-      "type": [
-        "null",
-        {
-          "type": "enum",
-          "name": "SeverityLevel",
-          "symbols": [
-            "INFO",
-            "WARNING",
-            "CRITICAL"
-          ]
-        }
-      ],
+      "type": {
+        "type": "enum",
+        "name": "SeverityLevel",
+        "symbols": [
+          "UNKNOWN",
+          "INFO",
+          "WARNING",
+          "CRITICAL"
+        ]
+      },
       "doc": "The level of alert severity",
-      "default": null
+      "default": "UNKNOWN"
     },
     {
       "name": "timestamp",
@@ -50,7 +48,8 @@
         "null",
         "string"
       ],
-      "doc": "Short description"
+      "doc": "Short description",
+      "default": null
     },
     {
       "name": "actualValue",
@@ -58,8 +57,8 @@
         "null",
         "float"
       ],
-      "default": null,
-      "doc": "Telemetry threshold which triggered alert"
+      "doc": "Telemetry threshold which triggered alert",
+      "default": null
     }
   ]
 }
