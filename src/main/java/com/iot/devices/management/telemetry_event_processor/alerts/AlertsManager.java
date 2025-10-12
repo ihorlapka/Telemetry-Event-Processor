@@ -12,27 +12,38 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.iot.alerts.ThresholdType.GREATER_THAN;
+import static com.iot.alerts.ThresholdType.LESS_THAN;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.util.Optional.empty;
 import static java.util.Optional.of;
 
 public interface AlertsManager<T extends SpecificRecord> {
 
-    Optional<Alert> checkEnergyMeter(T telemetry, AlertRule alertRule);
+    Optional<Alert> check(T telemetry, AlertRule alertRule);
 
-    default boolean checkThreshold(ThresholdType thresholdType, float telemetryValue, AlertRule alertRule) {
-        final int compare = BigDecimal.valueOf(telemetryValue).compareTo(BigDecimal.valueOf(alertRule.getThresholdValue()));
-        return switch (thresholdType) {
-            case GREATER_THAN -> compare > 0;
-            case LESS_THAN -> compare < 0;
-            default -> throw new IllegalArgumentException("Unable to check threshold because threshold type is unknown");
-        };
+    default Optional<Alert> checkThreshold(AlertRule alertRule, @Nullable Float param) {
+        if (param != null && (isThresholdReached(LESS_THAN, param, alertRule) || isThresholdReached(GREATER_THAN, param, alertRule))) {
+            return createAlert(alertRule, param);
+        }
+        return empty();
     }
 
-    default boolean checkTimeThreshold(Instant telemetryTime, AlertRule alertRule) {
-        if (telemetryTime == null || alertRule.getThresholdValue() == null) {
-            return false;
+    default Optional<Alert> checkBattery(AlertRule alertRule, @Nullable Integer batteryLevel) {
+        if (batteryLevel != null && isThresholdReached(LESS_THAN, batteryLevel, alertRule)) {
+            return createAlert(alertRule, (float) batteryLevel);
         }
-        return telemetryTime.isAfter(Instant.now().plus(Duration.of(alertRule.getThresholdValue().longValue(), SECONDS)));
+        return empty();
+    }
+
+    default Optional<Alert> checkTimeThreshold(@Nullable Instant telemetryTime, AlertRule alertRule) {
+        if (telemetryTime == null || alertRule.getThresholdValue() == null) {
+            return empty();
+        }
+        if (hasTimeExpired(telemetryTime, alertRule)) {
+            return createAlert(alertRule, (float) telemetryTime.toEpochMilli());
+        }
+        return empty();
     }
 
     default Optional<Alert> createAlert(AlertRule alertRule, @Nullable Float value) {
@@ -47,7 +58,20 @@ public interface AlertsManager<T extends SpecificRecord> {
                 .build());
     }
 
-    default String createMessage(AlertRule alertRule) {
+    private boolean isThresholdReached(ThresholdType thresholdType, float telemetryValue, AlertRule alertRule) {
+        final int compare = BigDecimal.valueOf(telemetryValue).compareTo(BigDecimal.valueOf(alertRule.getThresholdValue()));
+        return switch (thresholdType) {
+            case GREATER_THAN -> compare > 0;
+            case LESS_THAN -> compare < 0;
+            default -> throw new IllegalArgumentException("Unable to check threshold because threshold type is unknown");
+        };
+    }
+
+    private boolean hasTimeExpired(Instant telemetryTime, AlertRule alertRule) {
+        return telemetryTime.isAfter(Instant.now().plus(Duration.of(alertRule.getThresholdValue().longValue(), SECONDS)));
+    }
+
+    private String createMessage(AlertRule alertRule) {
         return "The value of %s is %s, defined normal threshold %s"
                 .formatted(alertRule.getMetricName().name().toLowerCase().replaceAll("_", " "),
                         alertRule.getThresholdType().name().toLowerCase().replaceAll("_", " "),

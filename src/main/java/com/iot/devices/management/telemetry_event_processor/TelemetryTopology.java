@@ -1,6 +1,5 @@
 package com.iot.devices.management.telemetry_event_processor;
 
-import com.iot.alerts.Alert;
 import com.iot.alerts.AlertRule;
 import com.iot.alerts.RuleCompoundKey;
 import com.iot.devices.management.telemetry_event_processor.alerts.AlertManagerProvider;
@@ -28,6 +27,7 @@ public class TelemetryTopology {
 
     private final StreamsBuilder streamsBuilder;
     private final KafkaStreamsProperties properties;
+    private final AlertManagerProvider alertManagerProvider;
 
     public void createTopology() {
         final Serde<SpecificRecord> telemetrySerde = getAvroSerde(SpecificRecord.class, false);
@@ -52,10 +52,7 @@ public class TelemetryTopology {
                         Materialized.with(Serdes.String(), alertRulesSerde)
                 );
 
-        final ValueJoiner<SpecificRecord, List<AlertRule>, List<Alert>> joiner = (telemetry, alertRules) ->
-                new AlertManagerProvider().createAlert(telemetry, alertRules);
-
-        telemetriesStream.join(aggregatedRules, joiner, Joined.with(Serdes.String(), telemetrySerde, alertRulesSerde))
+        telemetriesStream.join(aggregatedRules, alertManagerProvider::createAlert, Joined.with(Serdes.String(), telemetrySerde, alertRulesSerde))
                 .peek((k, v) -> log.info("Alert created {}", v))
                 .to(properties.getAlertsOutputTopic());
     }

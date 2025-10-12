@@ -25,7 +25,10 @@
           "ENERGY_CONSUMED",
           "BATTERY_LEVEL",
           "TAMPER",
-          "OPENED"
+          "TIME_OUT",
+          "PERCENTAGE",
+          "HUMIDITY",
+          "PRESSURE"
         ]
       },
       "doc": "The field of telemetry which was verified",

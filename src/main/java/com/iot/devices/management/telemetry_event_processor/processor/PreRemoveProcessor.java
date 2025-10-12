@@ -16,7 +16,7 @@ public class PreRemoveProcessor implements FixedKeyProcessorSupplier<RuleCompoun
     public FixedKeyProcessor<RuleCompoundKey, AlertRule, AlertRule> get() {
         return record -> {
             if (record.value() == null) {
-                AlertRule tombstoneMarker = AlertRule.newBuilder()
+                final AlertRule tombstoneMarker = AlertRule.newBuilder()
                         .setRuleId(record.key().getRuleId())
                         .setDeviceId(record.key().getDeviceId())
                         .setIsEnabled(false)
