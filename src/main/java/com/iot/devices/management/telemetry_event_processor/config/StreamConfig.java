@@ -1,7 +1,7 @@
 package com.iot.devices.management.telemetry_event_processor.config;
 
 import com.iot.alerts.Alert;
-import com.iot.devices.management.telemetry_event_processor.TelemetryTopology;
+import com.iot.devices.management.telemetry_event_processor.AlertingTopology;
 import com.iot.devices.management.telemetry_event_processor.properties.KafkaStreamsProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +39,7 @@ public class StreamConfig {
     }
 
     @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_BUILDER_BEAN_NAME + "Topology")
-    public KStream<String, List<Alert>> topologyBuilder(StreamsBuilder streamsBuilder, TelemetryTopology telemetryTopology) {
-        return telemetryTopology.createTopology(streamsBuilder);
+    public KStream<String, List<Alert>> topologyBuilder(StreamsBuilder streamsBuilder, AlertingTopology alertingTopology) {
+        return alertingTopology.createTopology(streamsBuilder);
     }
 }

@@ -11,11 +11,12 @@ import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 
 @Slf4j
 @RequiredArgsConstructor(staticName = "create")
-public class PreRemoveProcessor implements FixedKeyProcessorSupplier<RuleCompoundKey, AlertRule, AlertRule> {
+public class TombstoneProcessor implements FixedKeyProcessorSupplier<RuleCompoundKey, AlertRule, AlertRule> {
 
     @Override
     public FixedKeyProcessor<RuleCompoundKey, AlertRule, AlertRule> get() {
         return new FixedKeyProcessor<>() {
+
             private FixedKeyProcessorContext<RuleCompoundKey, AlertRule> context;
 
             @Override

@@ -17,8 +17,7 @@ public class ThermostatAlertsManager implements AlertsManager<Thermostat> {
         return switch (alertRule.getMetricName()) {
             case TEMPERATURE -> checkThreshold(alertRule, thermostat.getCurrentTemperature());
             case HUMIDITY -> checkThreshold(alertRule, thermostat.getHumidity());
-            default -> throw new IllegalArgumentException("Unable to check " + alertRule.getMetricName()
-                    + " for " + thermostat);
+            default -> throw new IllegalArgumentException("Unable to check " + alertRule.getMetricName() + " for " + thermostat);
         };
     }
 }

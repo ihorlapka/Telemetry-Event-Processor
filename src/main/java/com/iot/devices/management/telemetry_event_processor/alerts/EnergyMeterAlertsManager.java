@@ -13,13 +13,13 @@ import java.util.Optional;
 public class EnergyMeterAlertsManager implements AlertsManager<EnergyMeter> {
 
     @Override
-    public Optional<Alert> check(EnergyMeter em, AlertRule alertRule) {
+    public Optional<Alert> check(EnergyMeter energyMeter, AlertRule alertRule) {
         return switch (alertRule.getMetricName()) {
-            case VOLTAGE -> checkThreshold(alertRule, em.getVoltage());
-            case CURRENT -> checkThreshold(alertRule, em.getCurrent());
-            case POWER -> checkThreshold(alertRule, em.getPower());
-            case ENERGY_CONSUMED -> checkThreshold(alertRule, em.getEnergyConsumed());
-            default -> throw new IllegalArgumentException("Unable to check " + alertRule.getMetricName() + " for " + em);
+            case VOLTAGE -> checkThreshold(alertRule, energyMeter.getVoltage());
+            case CURRENT -> checkThreshold(alertRule, energyMeter.getCurrent());
+            case POWER -> checkThreshold(alertRule, energyMeter.getPower());
+            case ENERGY_CONSUMED -> checkThreshold(alertRule, energyMeter.getEnergyConsumed());
+            default -> throw new IllegalArgumentException("Unable to check " + alertRule.getMetricName() + " for " + energyMeter);
         };
     }
 }

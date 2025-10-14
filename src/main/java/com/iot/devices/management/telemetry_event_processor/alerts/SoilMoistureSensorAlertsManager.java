@@ -18,8 +18,7 @@ public class SoilMoistureSensorAlertsManager implements AlertsManager<SoilMoistu
             case PERCENTAGE -> checkThreshold(alertRule, soilMoistureSensor.getMoisturePercentage());
             case BATTERY_LEVEL -> checkBattery(alertRule, soilMoistureSensor.getBatteryLevel());
             case TEMPERATURE -> checkThreshold(alertRule, soilMoistureSensor.getSoilTemperature());
-            default -> throw new IllegalArgumentException("Unable to check " + alertRule.getMetricName()
-                    + " for " + soilMoistureSensor);
+            default -> throw new IllegalArgumentException("Unable to check " + alertRule.getMetricName() + " for " + soilMoistureSensor);
         };
     }
 }
