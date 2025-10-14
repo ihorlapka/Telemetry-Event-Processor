@@ -1,5 +1,6 @@
 package com.iot.devices.management.telemetry_event_processor;
 
+import com.iot.alerts.Alert;
 import com.iot.alerts.AlertRule;
 import com.iot.alerts.RuleCompoundKey;
 import com.iot.devices.management.telemetry_event_processor.alerts.AlertManagerProvider;
@@ -13,23 +14,23 @@ import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
+import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 import static org.apache.kafka.common.serialization.Serdes.ListSerde;
 
 @Slf4j
+@Component
 @RequiredArgsConstructor
 public class TelemetryTopology {
 
-    private final StreamsBuilder streamsBuilder;
     private final KafkaStreamsProperties properties;
     private final AlertManagerProvider alertManagerProvider;
 
-    public void createTopology() {
+
+    public KStream<String, List<Alert>> createTopology(StreamsBuilder streamsBuilder) {
         final Serde<SpecificRecord> telemetrySerde = getAvroSerde(SpecificRecord.class, false);
         KStream<String, SpecificRecord> telemetriesStream = streamsBuilder.stream(properties.getTelemetryInputTopic(), Consumed.with(Serdes.String(), telemetrySerde));
 
@@ -52,9 +53,15 @@ public class TelemetryTopology {
                         Materialized.with(Serdes.String(), alertRulesSerde)
                 );
 
-        telemetriesStream.join(aggregatedRules, alertManagerProvider::createAlert, Joined.with(Serdes.String(), telemetrySerde, alertRulesSerde))
+        KStream<String, List<Alert>> alertsStream = telemetriesStream.join(aggregatedRules,
+                alertManagerProvider::createAlert, Joined.with(Serdes.String(), telemetrySerde, alertRulesSerde));
+
+        alertsStream
+                .flatMapValues(list -> list)
                 .peek((k, v) -> log.info("Alert created {}", v))
                 .to(properties.getAlertsOutputTopic());
+
+        return alertsStream;
     }
 
     private <T extends SpecificRecord> Serde<T> getAvroSerde(Class<T> clazz, boolean isKey) {

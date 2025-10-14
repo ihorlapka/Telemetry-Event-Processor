@@ -2,7 +2,6 @@ package com.iot.devices.management.telemetry_event_processor.alerts;
 
 import com.iot.alerts.Alert;
 import com.iot.alerts.AlertRule;
-import com.iot.alerts.ThresholdType;
 import org.apache.avro.specific.SpecificRecord;
 import org.springframework.lang.Nullable;
 
@@ -12,8 +11,6 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.iot.alerts.ThresholdType.GREATER_THAN;
-import static com.iot.alerts.ThresholdType.LESS_THAN;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -23,14 +20,14 @@ public interface AlertsManager<T extends SpecificRecord> {
     Optional<Alert> check(T telemetry, AlertRule alertRule);
 
     default Optional<Alert> checkThreshold(AlertRule alertRule, @Nullable Float param) {
-        if (param != null && (isThresholdReached(LESS_THAN, param, alertRule) || isThresholdReached(GREATER_THAN, param, alertRule))) {
+        if (param != null && isThresholdReached(param, alertRule)) {
             return createAlert(alertRule, param);
         }
         return empty();
     }
 
     default Optional<Alert> checkBattery(AlertRule alertRule, @Nullable Integer batteryLevel) {
-        if (batteryLevel != null && isThresholdReached(LESS_THAN, batteryLevel, alertRule)) {
+        if (batteryLevel != null && isThresholdReached(batteryLevel, alertRule)) {
             return createAlert(alertRule, (float) batteryLevel);
         }
         return empty();
@@ -58,9 +55,9 @@ public interface AlertsManager<T extends SpecificRecord> {
                 .build());
     }
 
-    private boolean isThresholdReached(ThresholdType thresholdType, float telemetryValue, AlertRule alertRule) {
+    private boolean isThresholdReached(float telemetryValue, AlertRule alertRule) {
         final int compare = BigDecimal.valueOf(telemetryValue).compareTo(BigDecimal.valueOf(alertRule.getThresholdValue()));
-        return switch (thresholdType) {
+        return switch (alertRule.getThresholdType()) {
             case GREATER_THAN -> compare > 0;
             case LESS_THAN -> compare < 0;
             default -> throw new IllegalArgumentException("Unable to check threshold because threshold type is unknown");

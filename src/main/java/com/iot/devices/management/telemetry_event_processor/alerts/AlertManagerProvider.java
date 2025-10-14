@@ -28,9 +28,6 @@ public class AlertManagerProvider {
         for (AlertRule alertRule : alertRules) {
             verify(telemetry, alertRule).ifPresent(alerts::add);
         }
-        if (alerts.isEmpty()) {
-            return null; //in order to skip message to be sent to alerts topic
-        }
         return alerts;
     }
 

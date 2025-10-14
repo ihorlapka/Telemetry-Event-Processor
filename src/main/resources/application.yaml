@@ -3,18 +3,20 @@ server:
 spring:
   application:
     name: telemetry-events-processor
-  kafka:
-    bootstrap-servers: localhost:9092
-    streams:
-      application-id: my-stream-id
-      properties:
-        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-        default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
-        schema.registry.url: http://localhost:8081
-        commit.interval.ms: 1000
-        cache.max.bytes.buffering: 10485760
-        auto.register.schemas: false
 tep:
   kafka:
     input-telemetries-topic: iot-devices-data
+    input-alerting-rules-topic: iot-alerting-rules
     output-alerts-topic: iot-devices-alerts
+    properties:
+      application.id: telemetry-events-processor
+      bootstrap.servers: localhost:9092
+      default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+      default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+      value.subject.name.strategy: io.confluent.kafka.serializers.subject.TopicRecordNameStrategy
+      schema.registry.url: http://localhost:8081
+      commit.interval.ms: 1000
+      statestore.cache.max.bytes: 10485760
+      specific.avro.reader: true
+      auto.register.schemas: false
+      default.deserialization.exception.handler: com.iot.devices.management.telemetry_event_processor.exceptions.handler.TelemetriesExceptionHandler
