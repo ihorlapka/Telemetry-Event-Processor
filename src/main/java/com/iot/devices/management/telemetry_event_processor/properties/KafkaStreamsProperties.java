@@ -47,7 +47,6 @@ public class KafkaStreamsProperties {
 
     public Properties getProperties() {
         Properties props = new Properties(properties.size());
-        properties.computeIfPresent(APPLICATION_ID_CONFIG, (k, v) -> v + UUID.randomUUID());
         props.putAll(properties);
         return props;
     }

@@ -19,34 +19,34 @@ public interface AlertsManager<T extends SpecificRecord> {
 
     Optional<Alert> check(T telemetry, AlertRule alertRule);
 
-    default Optional<Alert> checkThreshold(AlertRule alertRule, @Nullable Float param) {
+    default Optional<Alert> checkThreshold(String deviceId, AlertRule alertRule, @Nullable Float param) {
         if (param != null && isThresholdReached(param, alertRule)) {
-            return createAlert(alertRule, param);
+            return createAlert(deviceId, alertRule, param);
         }
         return empty();
     }
 
-    default Optional<Alert> checkBattery(AlertRule alertRule, @Nullable Integer batteryLevel) {
+    default Optional<Alert> checkBattery(String deviceId, AlertRule alertRule, @Nullable Integer batteryLevel) {
         if (batteryLevel != null && isThresholdReached(batteryLevel, alertRule)) {
-            return createAlert(alertRule, (float) batteryLevel);
+            return createAlert(deviceId, alertRule, (float) batteryLevel);
         }
         return empty();
     }
 
-    default Optional<Alert> checkTimeThreshold(@Nullable Instant telemetryTime, AlertRule alertRule) {
+    default Optional<Alert> checkTimeThreshold(String deviceId, @Nullable Instant telemetryTime, AlertRule alertRule) {
         if (telemetryTime == null || alertRule.getThresholdValue() == null) {
             return empty();
         }
         if (hasTimeExpired(telemetryTime, alertRule)) {
-            return createAlert(alertRule, (float) telemetryTime.toEpochMilli());
+            return createAlert(deviceId, alertRule, (float) telemetryTime.toEpochMilli());
         }
         return empty();
     }
 
-    default Optional<Alert> createAlert(AlertRule alertRule, @Nullable Float value) {
+    default Optional<Alert> createAlert(String deviceId, AlertRule alertRule, @Nullable Float value) {
         return of(Alert.newBuilder()
                 .setAlertId(UUID.randomUUID().toString())
-                .setDeviceId(alertRule.getDeviceId())
+                .setDeviceId(deviceId)
                 .setRuleId(alertRule.getRuleId())
                 .setSeverity(alertRule.getSeverity())
                 .setTimestamp(Instant.now())

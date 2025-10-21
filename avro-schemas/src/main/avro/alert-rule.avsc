@@ -8,8 +8,13 @@
       "type": "string"
     },
     {
-      "name": "deviceId",
-      "type": "string"
+      "name": "deviceIds",
+      "type": {
+        "type": "array",
+        "items": "string"
+      },
+      "default": [],
+      "doc": "The list of deviceIds for which this rule may be applied"
     },
     {
       "name": "metricName",

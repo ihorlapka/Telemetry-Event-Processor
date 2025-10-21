@@ -15,9 +15,9 @@ public class SmartPlugAlertsManager implements AlertsManager<SmartPlug> {
     @Override
     public Optional<Alert> check(SmartPlug smartPlug, AlertRule alertRule) {
         return switch (alertRule.getMetricName()) {
-            case VOLTAGE -> checkThreshold(alertRule, smartPlug.getVoltage());
-            case CURRENT -> checkThreshold(alertRule, smartPlug.getCurrent());
-            case POWER -> checkThreshold(alertRule, smartPlug.getPowerUsage());
+            case VOLTAGE -> checkThreshold(smartPlug.getDeviceId(), alertRule, smartPlug.getVoltage());
+            case CURRENT -> checkThreshold(smartPlug.getDeviceId(), alertRule, smartPlug.getCurrent());
+            case POWER -> checkThreshold(smartPlug.getDeviceId(), alertRule, smartPlug.getPowerUsage());
             default -> throw new IllegalArgumentException("Unable to check " + alertRule.getMetricName() + " for " + smartPlug);
         };
     }

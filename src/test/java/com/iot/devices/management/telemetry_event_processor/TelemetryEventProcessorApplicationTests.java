@@ -25,10 +25,7 @@ import org.testcontainers.utility.DockerImageName;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 import static com.iot.alerts.SeverityLevel.CRITICAL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -78,7 +75,7 @@ class TelemetryEventProcessorApplicationTests {
 
         AlertRule alertRule = AlertRule.newBuilder()
                 .setRuleId(UUID.randomUUID().toString())
-                .setDeviceId(deviceId)
+                .setDeviceIds(List.of(deviceId, UUID.randomUUID().toString(), UUID.randomUUID().toString()))
                 .setMetricName(MetricType.VOLTAGE)
                 .setThresholdType(ThresholdType.GREATER_THAN)
                 .setThresholdValue(225f)

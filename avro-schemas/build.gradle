@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id "com.github.davidmc24.gradle.plugin.avro" version '1.9.1'
+    id 'maven-publish'
 }
 
 group = 'com.iot.alerts.avro.schemas'
@@ -35,4 +36,19 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'com.iot.alerts.avro.schemas'
+            artifactId = 'avro-schemas'
+            version = '0.0.1-SNAPSHOT'
+
+            artifact jar
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
 }

@@ -18,7 +18,7 @@ public class SmartLightAlertsManager implements AlertsManager<SmartLight> {
     @Override
     public Optional<Alert> check(SmartLight smartLight, AlertRule alertRule) {
         if (ENERGY_CONSUMED.equals(alertRule.getMetricName())) {
-            return checkThreshold(alertRule, smartLight.getPowerConsumption());
+            return checkThreshold(smartLight.getDeviceId(), alertRule, smartLight.getPowerConsumption());
         }
         return empty();
     }

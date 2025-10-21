@@ -1,7 +1,6 @@
 package com.iot.devices.management.telemetry_event_processor.processor;
 
 import com.iot.alerts.AlertRule;
-import com.iot.alerts.RuleCompoundKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessor;
@@ -9,28 +8,28 @@ import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier;
 import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 
+
 @Slf4j
 @RequiredArgsConstructor(staticName = "create")
-public class TombstoneProcessor implements FixedKeyProcessorSupplier<RuleCompoundKey, AlertRule, AlertRule> {
+public class TombstoneProcessor implements FixedKeyProcessorSupplier<String, AlertRule, AlertRule> {
 
     @Override
-    public FixedKeyProcessor<RuleCompoundKey, AlertRule, AlertRule> get() {
+    public FixedKeyProcessor<String, AlertRule, AlertRule> get() {
         return new FixedKeyProcessor<>() {
 
-            private FixedKeyProcessorContext<RuleCompoundKey, AlertRule> context;
+            private FixedKeyProcessorContext<String, AlertRule> context;
 
             @Override
-            public void init(FixedKeyProcessorContext<RuleCompoundKey, AlertRule> context) {
+            public void init(FixedKeyProcessorContext<String, AlertRule> context) {
                 this.context = context;
             }
 
             @Override
-            public void process(FixedKeyRecord<RuleCompoundKey, AlertRule> record) {
+            public void process(FixedKeyRecord<String, AlertRule> record) {
                 if (record.value() == null) {
                     log.info("Creating a tombstone marker for removing alert rule");
                     final AlertRule tombstoneMarker = AlertRule.newBuilder()
-                            .setRuleId(record.key().getRuleId())
-                            .setDeviceId(record.key().getDeviceId())
+                            .setRuleId(record.key())
                             .setIsEnabled(false)
                             .build();
 

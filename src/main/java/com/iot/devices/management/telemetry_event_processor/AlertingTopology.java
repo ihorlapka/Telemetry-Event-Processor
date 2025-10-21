@@ -2,7 +2,6 @@ package com.iot.devices.management.telemetry_event_processor;
 
 import com.iot.alerts.Alert;
 import com.iot.alerts.AlertRule;
-import com.iot.alerts.RuleCompoundKey;
 import com.iot.devices.management.telemetry_event_processor.alerts.AlertManagerProvider;
 import com.iot.devices.management.telemetry_event_processor.processor.TombstoneProcessor;
 import com.iot.devices.management.telemetry_event_processor.properties.KafkaStreamsProperties;
@@ -12,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
 import org.springframework.stereotype.Component;
@@ -31,16 +31,16 @@ public class AlertingTopology {
 
 
     public KStream<String, List<Alert>> createTopology(StreamsBuilder streamsBuilder) {
-        final Serde<SpecificRecord> telemetrySerde = getAvroSerde(SpecificRecord.class, false);
+        final Serde<SpecificRecord> telemetrySerde = getAvroValueSerde(SpecificRecord.class);
         KStream<String, SpecificRecord> telemetriesStream = streamsBuilder.stream(properties.getTelemetryInputTopic(), Consumed.with(Serdes.String(), telemetrySerde));
 
-        final Serde<RuleCompoundKey> ruleKeySerde = getAvroSerde(RuleCompoundKey.class, true);
-        final Serde<AlertRule> ruleValuesSerde = getAvroSerde(AlertRule.class, false);
+        final Serde<AlertRule> ruleValuesSerde = getAvroValueSerde(AlertRule.class);
         final Serde<List<AlertRule>> alertRulesSerde = ListSerde(ArrayList.class, ruleValuesSerde);
 
-        KTable<String, List<AlertRule>> aggregatedRules = streamsBuilder.stream(properties.getAlertingRulesInputTopic(), Consumed.with(ruleKeySerde, ruleValuesSerde))
+        KTable<String, List<AlertRule>> aggregatedRules = streamsBuilder.stream(properties.getAlertingRulesInputTopic(), Consumed.with(Serdes.String(), ruleValuesSerde))
                 .processValues(TombstoneProcessor.create())
-                .selectKey((k, v) -> k.getDeviceId())
+                .selectKey((k, v) -> v.getDeviceIds())
+                .flatMap(this::mapToAlertRulePerDeviceId)
                 .groupByKey(Grouped.with(Serdes.String(), ruleValuesSerde))
                 .aggregate(ArrayList::new,
                         (deviceId, newRule, rulesList) -> aggregateAlertRules(newRule, rulesList),
@@ -58,6 +58,12 @@ public class AlertingTopology {
         return alertsStream;
     }
 
+    private List<KeyValue<String, AlertRule>> mapToAlertRulePerDeviceId(List<String> deviceIds, AlertRule alertRule) {
+        return deviceIds.stream()
+                .map(deviceId -> new KeyValue<>(deviceId, alertRule))
+                .toList();
+    }
+
     private List<AlertRule> aggregateAlertRules(AlertRule newRule, List<AlertRule> rulesList) {
         rulesList.removeIf(presentRule -> {
             boolean isTheSameRule = presentRule.getRuleId().equals(newRule.getRuleId());
@@ -73,9 +79,9 @@ public class AlertingTopology {
         return rulesList;
     }
 
-    private <T extends SpecificRecord> Serde<T> getAvroSerde(Class<T> clazz, boolean isKey) {
+    private <T extends SpecificRecord> Serde<T> getAvroValueSerde(Class<T> clazz) {
         final Serde<T> rulesSerde = new SpecificAvroSerde<>();
-        rulesSerde.configure(Map.of(SCHEMA_REGISTRY_URL_CONFIG, properties.getSchemaRegistryUrl()), isKey);
+        rulesSerde.configure(Map.of(SCHEMA_REGISTRY_URL_CONFIG, properties.getSchemaRegistryUrl()), false);
         return rulesSerde;
     }
 }

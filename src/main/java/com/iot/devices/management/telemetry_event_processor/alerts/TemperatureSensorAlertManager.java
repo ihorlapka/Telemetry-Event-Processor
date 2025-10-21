@@ -15,9 +15,9 @@ public class TemperatureSensorAlertManager implements AlertsManager<TemperatureS
     @Override
     public Optional<Alert> check(TemperatureSensor temperatureSensor, AlertRule alertRule) {
         return switch (alertRule.getMetricName()) {
-            case TEMPERATURE -> checkThreshold(alertRule, temperatureSensor.getTemperature());
-            case HUMIDITY -> checkThreshold(alertRule, temperatureSensor.getHumidity());
-            case PRESSURE -> checkThreshold(alertRule, temperatureSensor.getPressure());
+            case TEMPERATURE -> checkThreshold(temperatureSensor.getDeviceId(), alertRule, temperatureSensor.getTemperature());
+            case HUMIDITY -> checkThreshold(temperatureSensor.getDeviceId(), alertRule, temperatureSensor.getHumidity());
+            case PRESSURE -> checkThreshold(temperatureSensor.getDeviceId(), alertRule, temperatureSensor.getPressure());
             default -> throw new IllegalArgumentException("Unable to check " + alertRule.getMetricName() + " for " + temperatureSensor);
         };
     }

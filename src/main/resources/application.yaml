@@ -9,7 +9,7 @@ tep:
     input-alerting-rules-topic: iot-alerting-rules
     output-alerts-topic: iot-devices-alerts
     properties:
-      application.id: telemetry-events-processor
+      application.id: telemetry-events-processor #do not add unique identifier
       bootstrap.servers: localhost:9092
       default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
       default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
