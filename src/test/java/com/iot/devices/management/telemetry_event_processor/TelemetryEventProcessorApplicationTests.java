@@ -60,7 +60,6 @@ class TelemetryEventProcessorApplicationTests {
 
     @BeforeAll
     public static void setUp() {
-        kafkaContainer.start();
         try (AdminClient adminClient = AdminClient.create(Map.of("bootstrap.servers", kafkaContainer.getBootstrapServers()))) {
             adminClient.createTopics(Collections.singletonList(new NewTopic("iot-devices-data", 1, (short) 1)));
             adminClient.createTopics(Collections.singletonList(new NewTopic("iot-alerting-rules", 1, (short) 1)
