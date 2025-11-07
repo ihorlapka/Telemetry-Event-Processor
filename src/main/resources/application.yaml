@@ -1,8 +1,20 @@
 server:
+  servlet:
+    context-path: /tep
   port: 8085
 spring:
   application:
     name: telemetry-events-processor
+  kafka:
+    streams:
+      binder:
+        metrics:
+          enabled: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
 tep:
   kafka:
     input-telemetries-topic: iot-devices-data
