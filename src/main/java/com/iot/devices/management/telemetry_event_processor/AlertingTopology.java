@@ -32,12 +32,12 @@ public class AlertingTopology {
 
     public KStream<String, List<Alert>> createTopology(StreamsBuilder streamsBuilder) {
         final Serde<SpecificRecord> telemetrySerde = getAvroValueSerde(SpecificRecord.class);
-        KStream<String, SpecificRecord> telemetriesStream = streamsBuilder.stream(properties.getTelemetryInputTopic(), Consumed.with(Serdes.String(), telemetrySerde));
+        final KStream<String, SpecificRecord> telemetriesStream = streamsBuilder.stream(properties.getTelemetryInputTopic(), Consumed.with(Serdes.String(), telemetrySerde));
 
         final Serde<AlertRule> ruleValuesSerde = getAvroValueSerde(AlertRule.class);
         final Serde<List<AlertRule>> alertRulesSerde = ListSerde(ArrayList.class, ruleValuesSerde);
 
-        KTable<String, List<AlertRule>> aggregatedRules = streamsBuilder.stream(properties.getAlertingRulesInputTopic(), Consumed.with(Serdes.String(), ruleValuesSerde))
+        final KTable<String, List<AlertRule>> aggregatedRules = streamsBuilder.stream(properties.getAlertingRulesInputTopic(), Consumed.with(Serdes.String(), ruleValuesSerde))
                 .processValues(TombstoneProcessor.create())
                 .selectKey((k, v) -> v.getDeviceIds())
                 .flatMap(this::mapToAlertRulePerDeviceId)
@@ -47,7 +47,7 @@ public class AlertingTopology {
                         Materialized.with(Serdes.String(), alertRulesSerde)
                 );
 
-        KStream<String, List<Alert>> alertsStream = telemetriesStream.join(aggregatedRules,
+        final KStream<String, List<Alert>> alertsStream = telemetriesStream.join(aggregatedRules,
                 alertManagerProvider::createAlert, Joined.with(Serdes.String(), telemetrySerde, alertRulesSerde));
 
         alertsStream

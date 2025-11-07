@@ -13,7 +13,7 @@ tep:
       bootstrap.servers: localhost:9092
       default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
       default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
-      value.subject.name.strategy: io.confluent.kafka.serializers.subject.TopicRecordNameStrategy
+      value.subject.name.strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
       schema.registry.url: http://localhost:8081
       commit.interval.ms: 1000
       statestore.cache.max.bytes: 10485760
