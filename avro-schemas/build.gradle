@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
+    id 'java-library'
     id 'application'
     id "com.github.davidmc24.gradle.plugin.avro" version '1.9.1'
     id 'maven-publish'
@@ -45,10 +45,29 @@ publishing {
             artifactId = 'avro-schemas'
             version = '0.0.1-SNAPSHOT'
 
-            artifact jar
+            from components.java
         }
     }
     repositories {
         mavenLocal()
+        maven {
+            name = 'nexusSnapshots'
+            url = uri("http://localhost:8089/repository/maven-snapshots/")
+            allowInsecureProtocol = true
+            credentials {
+                username = project.hasProperty('nexusUser') ? project.getProperty('nexusUser') : ""
+                password = project.hasProperty('nexusPassword') ? project.getProperty('nexusPassword') : ""
+            }
+        }
+
+        maven {
+            name = 'nexusReleases'
+            url = uri("http://localhost:8089/repository/maven-releases/")
+            allowInsecureProtocol = true
+            credentials {
+                username = project.hasProperty('nexusUser') ? project.getProperty('nexusUser') : ""
+                password = project.hasProperty('nexusPassword') ? project.getProperty('nexusPassword') : ""
+            }
+        }
     }
 }
