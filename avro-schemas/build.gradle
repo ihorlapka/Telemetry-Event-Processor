@@ -51,23 +51,30 @@ publishing {
     repositories {
         mavenLocal()
         maven {
-            name = 'nexusSnapshots'
-            url = uri("http://localhost:8089/repository/maven-snapshots/")
-            allowInsecureProtocol = true
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/ihorlapka/Telemetry-Event-Processor")
             credentials {
-                username = project.hasProperty('nexusUser') ? project.getProperty('nexusUser') : ""
-                password = project.hasProperty('nexusPassword') ? project.getProperty('nexusPassword') : ""
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
             }
         }
-
-        maven {
-            name = 'nexusReleases'
-            url = uri("http://localhost:8089/repository/maven-releases/")
-            allowInsecureProtocol = true
-            credentials {
-                username = project.hasProperty('nexusUser') ? project.getProperty('nexusUser') : ""
-                password = project.hasProperty('nexusPassword') ? project.getProperty('nexusPassword') : ""
-            }
-        }
+//        maven {
+//            name = 'nexusSnapshots'
+//            url = uri("http://iot-nexus/repository/maven-snapshots/")
+//            allowInsecureProtocol = true
+//            credentials {
+//                username = project.hasProperty('nexusUser') ? project.getProperty('nexusUser') : ""
+//                password = project.hasProperty('nexusPassword') ? project.getProperty('nexusPassword') : ""
+//            }
+//        }
+//        maven {
+//            name = 'nexusReleases'
+//            url = uri("http://iot-nexus/repository/maven-releases/")
+//            allowInsecureProtocol = true
+//            credentials {
+//                username = project.hasProperty('nexusUser') ? project.getProperty('nexusUser') : ""
+//                password = project.hasProperty('nexusPassword') ? project.getProperty('nexusPassword') : ""
+//            }
+//        }
     }
 }
