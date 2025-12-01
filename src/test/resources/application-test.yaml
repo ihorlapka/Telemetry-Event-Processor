@@ -32,7 +32,7 @@ test:
       alerting-rules:
         properties:
           bootstrap.servers: localhost:9092
-          key.serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+          key.serializer: org.apache.kafka.common.serialization.StringSerializer
           value.serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
           schema.registry.url: mock://my-scope:8081
     consumer:
