@@ -26,6 +26,14 @@ repositories {
 	maven {
 		url = uri("https://packages.confluent.io/maven/")
 	}
+	maven {
+		name = "GitHubPackages"
+		url = uri("https://maven.pkg.github.com/ihorlapka/Telemetry-Event-Processor")
+		credentials {
+			username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+			password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+		}
+	}
 }
 
 dependencies {
