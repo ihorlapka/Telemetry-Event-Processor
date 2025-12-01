@@ -82,12 +82,7 @@ class TelemetryEventProcessorApplicationTests {
                 .setIsEnabled(true)
                 .build();
 
-        RuleCompoundKey key = RuleCompoundKey.newBuilder()
-                .setDeviceId(deviceId)
-                .setRuleId(alertRule.getRuleId())
-                .build();
-
-        alertingRulesKafkaProducer.sendMessage(streamsProperties.getAlertingRulesInputTopic(), key, alertRule);
+        alertingRulesKafkaProducer.sendMessage(streamsProperties.getAlertingRulesInputTopic(), alertRule.getRuleId(), alertRule);
 
         ThreadUtils.sleep(Duration.ofSeconds(1));
 

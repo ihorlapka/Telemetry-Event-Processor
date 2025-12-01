@@ -1,7 +1,6 @@
 package com.iot.devices.management.telemetry_event_processor;
 
 import com.iot.alerts.AlertRule;
-import com.iot.alerts.RuleCompoundKey;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -16,7 +15,7 @@ import java.util.concurrent.Future;
 @Component
 public class AlertingRulesKafkaProducer {
 
-    private final KafkaProducer<RuleCompoundKey, AlertRule> kafkaProducer;
+    private final KafkaProducer<String, AlertRule> kafkaProducer;
 
     public AlertingRulesKafkaProducer(AlertingRulesKafkaProducerProperties producerProperties) {
         Properties properties = new Properties();
@@ -24,9 +23,9 @@ public class AlertingRulesKafkaProducer {
         this.kafkaProducer = new KafkaProducer<>(properties);
     }
 
-    public void sendMessage(String topic, RuleCompoundKey key, AlertRule record) {
+    public void sendMessage(String topic, String key, AlertRule record) {
         try {
-            final ProducerRecord<RuleCompoundKey, AlertRule> producerRecord = new ProducerRecord<>(topic, key, record);
+            final ProducerRecord<String, AlertRule> producerRecord = new ProducerRecord<>(topic, key, record);
             final Future<RecordMetadata> future = kafkaProducer.send(producerRecord);
             final RecordMetadata recordMetadata = future.get();
             if (recordMetadata.hasOffset()) {
