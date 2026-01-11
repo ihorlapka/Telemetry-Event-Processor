@@ -27,7 +27,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
-import static com.iot.alerts.SeverityLevel.CRITICAL;
+import static com.iot.alerts.SeverityLevel.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -72,17 +72,39 @@ class TelemetryEventProcessorApplicationTests {
     public void testKafkaStreams() throws InterruptedException {
         String deviceId = UUID.randomUUID().toString();
 
-        AlertRule alertRule = AlertRule.newBuilder()
+        AlertRule alertRule1 = AlertRule.newBuilder()
+                .setRuleId(UUID.randomUUID().toString())
+                .setDeviceIds(List.of(deviceId, UUID.randomUUID().toString(), UUID.randomUUID().toString()))
+                .setMetricName(MetricType.VOLTAGE)
+                .setThresholdType(ThresholdType.GREATER_THAN)
+                .setThresholdValue(220f)
+                .setSeverity(INFO)
+                .setIsEnabled(true)
+                .build();
+
+        AlertRule alertRule2 = AlertRule.newBuilder()
                 .setRuleId(UUID.randomUUID().toString())
                 .setDeviceIds(List.of(deviceId, UUID.randomUUID().toString(), UUID.randomUUID().toString()))
                 .setMetricName(MetricType.VOLTAGE)
                 .setThresholdType(ThresholdType.GREATER_THAN)
                 .setThresholdValue(225f)
+                .setSeverity(WARNING)
+                .setIsEnabled(true)
+                .build();
+
+        AlertRule alertRule3 = AlertRule.newBuilder()
+                .setRuleId(UUID.randomUUID().toString())
+                .setDeviceIds(List.of(deviceId, UUID.randomUUID().toString(), UUID.randomUUID().toString()))
+                .setMetricName(MetricType.VOLTAGE)
+                .setThresholdType(ThresholdType.GREATER_THAN)
+                .setThresholdValue(230f)
                 .setSeverity(CRITICAL)
                 .setIsEnabled(true)
                 .build();
 
-        alertingRulesKafkaProducer.sendMessage(streamsProperties.getAlertingRulesInputTopic(), alertRule.getRuleId(), alertRule);
+        alertingRulesKafkaProducer.sendMessage(streamsProperties.getAlertingRulesInputTopic(), alertRule1.getRuleId(), alertRule1);
+        alertingRulesKafkaProducer.sendMessage(streamsProperties.getAlertingRulesInputTopic(), alertRule2.getRuleId(), alertRule2);
+        alertingRulesKafkaProducer.sendMessage(streamsProperties.getAlertingRulesInputTopic(), alertRule3.getRuleId(), alertRule3);
 
         ThreadUtils.sleep(Duration.ofSeconds(1));
 
@@ -108,7 +130,7 @@ class TelemetryEventProcessorApplicationTests {
 
         EnergyMeter energyMeter3 = EnergyMeter.newBuilder()
                 .setDeviceId(deviceId)
-                .setVoltage(226f)
+                .setVoltage(231f)
                 .setCurrent(0.1f)
                 .setPower(110f)
                 .setEnergyConsumed(1000f)
@@ -125,16 +147,26 @@ class TelemetryEventProcessorApplicationTests {
             ConsumerRecords<String, Alert> records = kafkaConsumer.poll(Duration.of(500, ChronoUnit.MILLIS));
 
             assertFalse(records.isEmpty());
-            assertEquals(1, records.count());
+            assertEquals(2, records.count());
 
+            List<Alert> receivedAlerts = new ArrayList<>();
             records.forEach(record -> {
-                Alert receivedAlert = record.value();
-                log.info("Received: {}", receivedAlert);
-                assertEquals(deviceId, receivedAlert.getDeviceId());
-                assertEquals(alertRule.getRuleId(), receivedAlert.getRuleId());
-                assertEquals(CRITICAL, receivedAlert.getSeverity());
-                assertEquals(energyMeter3.getVoltage(), receivedAlert.getActualValue());
+                log.info("Received: {}", record.value());
+                receivedAlerts.add(record.value());
             });
+            assertFalse(receivedAlerts.isEmpty());
+
+            Alert alert1 = receivedAlerts.getFirst();
+            assertEquals(deviceId, alert1.getDeviceId());
+            assertEquals(alertRule1.getRuleId(), alert1.getRuleId());
+            assertEquals(INFO, alert1.getSeverity());
+            assertEquals(energyMeter2.getVoltage(), alert1.getActualValue());
+
+            Alert alert2 = receivedAlerts.get(1);
+            assertEquals(deviceId, alert2.getDeviceId());
+            assertEquals(alertRule3.getRuleId(), alert2.getRuleId());
+            assertEquals(CRITICAL, alert2.getSeverity());
+            assertEquals(energyMeter3.getVoltage(), alert2.getActualValue());
         }
     }
 

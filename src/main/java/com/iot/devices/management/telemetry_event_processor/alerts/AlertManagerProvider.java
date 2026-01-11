@@ -2,14 +2,15 @@ package com.iot.devices.management.telemetry_event_processor.alerts;
 
 import com.iot.alerts.Alert;
 import com.iot.alerts.AlertRule;
+import com.iot.alerts.MetricType;
 import com.iot.devices.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.avro.specific.SpecificRecord;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
+import static java.util.stream.Collectors.groupingBy;
 
 @Component
 @RequiredArgsConstructor
@@ -24,9 +25,17 @@ public class AlertManagerProvider {
     private final ThermostatAlertsManager thermostatAlertsManager;
 
     public List<Alert> createAlert(SpecificRecord telemetry, List<AlertRule> alertRules) {
+        final Map<MetricType, List<AlertRule>> alertRulesByMetricType = alertRules.stream()
+                .collect(groupingBy(AlertRule::getMetricName));
         final List<Alert> alerts = new ArrayList<>();
-        for (AlertRule alertRule : alertRules) {
-            verify(telemetry, alertRule).ifPresent(alerts::add);
+        for (Map.Entry<MetricType, List<AlertRule>> entry : alertRulesByMetricType.entrySet()) {
+            final List<Alert> filteredAlerts = new ArrayList<>();
+            for (AlertRule alertRule : entry.getValue()) {
+                verify(telemetry, alertRule).ifPresent(filteredAlerts::add);
+            }
+            filteredAlerts.stream()
+                    .max(Comparator.comparingInt(alert -> alert.getSeverity().ordinal()))
+                    .ifPresent(alerts::add);
         }
         return alerts;
     }
