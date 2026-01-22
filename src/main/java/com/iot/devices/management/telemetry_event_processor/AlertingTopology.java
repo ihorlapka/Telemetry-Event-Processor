@@ -31,15 +31,20 @@ public class AlertingTopology {
 
 
     public KStream<String, List<Alert>> createTopology(StreamsBuilder streamsBuilder) {
-        final Serde<SpecificRecord> telemetrySerde = getAvroValueSerde(SpecificRecord.class);
+        final Serde<SpecificRecord> telemetrySerde = getAvroValueSerde();
         final KStream<String, SpecificRecord> telemetriesStream = streamsBuilder.stream(properties.getTelemetryInputTopic(), Consumed.with(Serdes.String(), telemetrySerde));
 
-        final Serde<AlertRule> ruleValuesSerde = getAvroValueSerde(AlertRule.class);
+        final Serde<AlertRule> ruleValuesSerde = getAvroValueSerde();
         final Serde<List<AlertRule>> alertRulesSerde = ListSerde(ArrayList.class, ruleValuesSerde);
 
         final KTable<String, List<AlertRule>> aggregatedRules = streamsBuilder.stream(properties.getAlertingRulesInputTopic(), Consumed.with(Serdes.String(), ruleValuesSerde))
                 .processValues(TombstoneProcessor.create())
-                .selectKey((k, v) -> v.getDeviceIds())
+                .selectKey((alertRuleId, alertRule) -> {
+                    if (alertRule == null) {
+                        return List.<String>of();
+                    }
+                    return alertRule.getDeviceIds();
+                })
                 .flatMap(this::mapToAlertRulePerDeviceId)
                 .groupByKey(Grouped.with(Serdes.String(), ruleValuesSerde))
                 .aggregate(ArrayList::new,
@@ -79,7 +84,7 @@ public class AlertingTopology {
         return rulesList;
     }
 
-    private <T extends SpecificRecord> Serde<T> getAvroValueSerde(Class<T> clazz) {
+    private <T extends SpecificRecord> Serde<T> getAvroValueSerde() {
         final Serde<T> rulesSerde = new SpecificAvroSerde<>();
         rulesSerde.configure(Map.of(SCHEMA_REGISTRY_URL_CONFIG, properties.getSchemaRegistryUrl()), false);
         return rulesSerde;
