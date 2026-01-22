@@ -30,7 +30,7 @@ public class TombstoneProcessor implements FixedKeyProcessorSupplier<String, Ale
             @Override
             public void process(FixedKeyRecord<String, AlertRule> record) {
                 if (record.value() == null) {
-                    log.info("Creating a tombstone marker for removing alert rule");
+                    log.info("Creating a tombstone marker for removing alert ruleId={}", record.key());
                     final AlertRule tombstoneMarker = AlertRule.newBuilder()
                             .setDeviceIds(List.of(UUID.randomUUID().toString())) //for removing it is mandatory and its value doesn't metter
                             .setRuleId(record.key())
@@ -38,8 +38,9 @@ public class TombstoneProcessor implements FixedKeyProcessorSupplier<String, Ale
                             .build();
 
                     context.forward(record.withValue(tombstoneMarker));
+                } else {
+                    context.forward(record);
                 }
-                context.forward(record);
             }
         };
     }
