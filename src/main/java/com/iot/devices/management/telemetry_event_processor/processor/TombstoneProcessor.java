@@ -9,6 +9,7 @@ import org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier;
 import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 
 import java.util.List;
+import java.util.UUID;
 
 
 @Slf4j
@@ -31,7 +32,7 @@ public class TombstoneProcessor implements FixedKeyProcessorSupplier<String, Ale
                 if (record.value() == null) {
                     log.info("Creating a tombstone marker for removing alert rule");
                     final AlertRule tombstoneMarker = AlertRule.newBuilder()
-                            .setDeviceIds(List.of())
+                            .setDeviceIds(List.of(UUID.randomUUID().toString())) //for removing it is mandatory and its value doesn't metter
                             .setRuleId(record.key())
                             .setIsEnabled(false)
                             .build();

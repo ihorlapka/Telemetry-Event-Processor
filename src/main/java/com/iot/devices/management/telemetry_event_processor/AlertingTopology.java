@@ -39,12 +39,7 @@ public class AlertingTopology {
 
         final KTable<String, List<AlertRule>> aggregatedRules = streamsBuilder.stream(properties.getAlertingRulesInputTopic(), Consumed.with(Serdes.String(), ruleValuesSerde))
                 .processValues(TombstoneProcessor.create())
-                .selectKey((alertRuleId, alertRule) -> {
-                    if (alertRule == null) {
-                        return List.<String>of();
-                    }
-                    return alertRule.getDeviceIds();
-                })
+                .selectKey((alertRuleId, alertRule) -> alertRule.getDeviceIds())
                 .flatMap(this::mapToAlertRulePerDeviceId)
                 .groupByKey(Grouped.with(Serdes.String(), ruleValuesSerde))
                 .aggregate(ArrayList::new,
