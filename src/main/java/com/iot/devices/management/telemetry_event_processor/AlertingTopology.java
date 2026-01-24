@@ -17,6 +17,7 @@ import org.apache.kafka.streams.kstream.*;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 import static org.apache.kafka.common.serialization.Serdes.ListSerde;
@@ -65,6 +66,7 @@ public class AlertingTopology {
     }
 
     private List<AlertRule> aggregateAlertRules(AlertRule newRule, List<AlertRule> rulesList) {
+        log.info("New rule: {}, Present rules: {}", newRule.getRuleId(), rulesList);
         rulesList.removeIf(presentRule -> {
             boolean isTheSameRule = presentRule.getRuleId().equals(newRule.getRuleId());
             if (isTheSameRule) {
