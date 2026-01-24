@@ -14,11 +14,14 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.StoreBuilder;
+import org.apache.kafka.streams.state.Stores;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
+import static com.iot.devices.management.telemetry_event_processor.processor.TombstoneProcessor.ALERT_RULES_STORE_NAME;
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 import static org.apache.kafka.common.serialization.Serdes.ListSerde;
 
@@ -33,13 +36,15 @@ public class AlertingTopology {
 
     public KStream<String, List<Alert>> createTopology(StreamsBuilder streamsBuilder) {
         final Serde<SpecificRecord> telemetrySerde = getAvroValueSerde();
-        final KStream<String, SpecificRecord> telemetriesStream = streamsBuilder.stream(properties.getTelemetryInputTopic(), Consumed.with(Serdes.String(), telemetrySerde));
-
         final Serde<AlertRule> ruleValuesSerde = getAvroValueSerde();
         final Serde<List<AlertRule>> alertRulesSerde = ListSerde(ArrayList.class, ruleValuesSerde);
 
-        final KTable<String, List<AlertRule>> aggregatedRules = streamsBuilder.stream(properties.getAlertingRulesInputTopic(), Consumed.with(Serdes.String(), ruleValuesSerde))
-                .processValues(TombstoneProcessor.create())
+        final KStream<String, SpecificRecord> telemetriesStream = streamsBuilder.stream(properties.getTelemetryInputTopic(), Consumed.with(Serdes.String(), telemetrySerde));
+
+        final KTable<String, List<AlertRule>> aggregatedRules = streamsBuilder
+                .addStateStore(getStateStoreBuilder(ruleValuesSerde))
+                .stream(properties.getAlertingRulesInputTopic(), Consumed.with(Serdes.String(), ruleValuesSerde))
+                .processValues(TombstoneProcessor.create(), ALERT_RULES_STORE_NAME)
                 .selectKey((alertRuleId, alertRule) -> alertRule.getDeviceIds())
                 .flatMap(this::mapToAlertRulePerDeviceId)
                 .groupByKey(Grouped.with(Serdes.String(), ruleValuesSerde))
@@ -57,6 +62,14 @@ public class AlertingTopology {
                 .to(properties.getAlertsOutputTopic());
 
         return alertsStream;
+    }
+
+    private StoreBuilder<KeyValueStore<String, AlertRule>> getStateStoreBuilder(Serde<AlertRule> ruleValuesSerde) {
+        return Stores.keyValueStoreBuilder(
+                Stores.persistentKeyValueStore(ALERT_RULES_STORE_NAME),
+                Serdes.String(),
+                ruleValuesSerde
+        );
     }
 
     private List<KeyValue<String, AlertRule>> mapToAlertRulePerDeviceId(List<String> deviceIds, AlertRule alertRule) {

@@ -28,6 +28,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static com.iot.alerts.SeverityLevel.*;
+import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -144,8 +145,9 @@ class TelemetryEventProcessorApplicationTests {
         final Properties properties = getProperties();
         try (KafkaConsumer<String, Alert> kafkaConsumer = new KafkaConsumer<>(properties)) {
             kafkaConsumer.subscribe(Collections.singletonList(streamsProperties.getAlertsOutputTopic()));
-            ConsumerRecords<String, Alert> records = kafkaConsumer.poll(Duration.of(500, ChronoUnit.MILLIS));
+            ConsumerRecords<String, Alert> records = kafkaConsumer.poll(Duration.of(1000, ChronoUnit.MILLIS));
 
+            sleep(500);
             assertFalse(records.isEmpty());
             assertEquals(2, records.count());
 
