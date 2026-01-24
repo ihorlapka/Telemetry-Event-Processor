@@ -79,7 +79,6 @@ public class AlertingTopology {
     }
 
     private List<AlertRule> aggregateAlertRules(AlertRule newRule, List<AlertRule> rulesList) {
-        log.info("New rule: {}, Present rules: {}", newRule.getRuleId(), rulesList);
         rulesList.removeIf(presentRule -> {
             boolean isTheSameRule = presentRule.getRuleId().equals(newRule.getRuleId());
             if (isTheSameRule) {
