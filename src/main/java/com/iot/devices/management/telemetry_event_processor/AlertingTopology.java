@@ -48,10 +48,7 @@ public class AlertingTopology {
                 .selectKey((alertRuleId, alertRule) -> alertRule.getDeviceIds())
                 .flatMap(this::mapToAlertRulePerDeviceId)
                 .groupByKey(Grouped.with(Serdes.String(), ruleValuesSerde))
-                .aggregate(ArrayList::new,
-                        (deviceId, newRule, rulesList) -> aggregateAlertRules(newRule, rulesList),
-                        Materialized.with(Serdes.String(), alertRulesSerde)
-                );
+                .aggregate(ArrayList::new, this::aggregateAlertRules, Materialized.with(Serdes.String(), alertRulesSerde));
 
         final KStream<String, List<Alert>> alertsStream = telemetriesStream.join(aggregatedRules,
                 alertManagerProvider::createAlert, Joined.with(Serdes.String(), telemetrySerde, alertRulesSerde));
@@ -78,16 +75,16 @@ public class AlertingTopology {
                 .toList();
     }
 
-    private List<AlertRule> aggregateAlertRules(AlertRule newRule, List<AlertRule> rulesList) {
+    private List<AlertRule> aggregateAlertRules(String deviceId, AlertRule newRule, List<AlertRule> rulesList) {
         rulesList.removeIf(presentRule -> {
             boolean isTheSameRule = presentRule.getRuleId().equals(newRule.getRuleId());
             if (isTheSameRule) {
-                log.info("Removing rule from aggregated joined rules: {}", presentRule);
+                log.info("Removing rule for deviceId={}, from aggregated joined rules: {}", deviceId, presentRule);
             }
             return isTheSameRule;
         });
         if (newRule.getIsEnabled()) {
-            log.info("New rule is added to aggregated joined rules: {}", newRule);
+            log.info("New rule is added for deviceId={} to aggregated joined rules: {}", deviceId, newRule);
             rulesList.add(newRule);
         }
         return rulesList;

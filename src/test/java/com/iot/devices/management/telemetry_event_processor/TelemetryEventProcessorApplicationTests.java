@@ -7,6 +7,7 @@ import com.iot.devices.management.telemetry_event_processor.properties.KafkaStre
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.junit.jupiter.api.BeforeAll;
@@ -108,7 +109,6 @@ class TelemetryEventProcessorApplicationTests {
         alertingRulesKafkaProducer.sendMessage(streamsProperties.getAlertingRulesInputTopic(), alertRule3.getRuleId(), alertRule3);
 
         ThreadUtils.sleep(Duration.ofSeconds(1));
-
         EnergyMeter energyMeter1 = EnergyMeter.newBuilder()
                 .setDeviceId(deviceId)
                 .setVoltage(220f)
@@ -119,6 +119,7 @@ class TelemetryEventProcessorApplicationTests {
 
         telemetriesKafkaProducer.sendMessage(streamsProperties.getTelemetryInputTopic(), energyMeter1.getDeviceId(), energyMeter1);
 
+        ThreadUtils.sleep(Duration.ofSeconds(1));
         EnergyMeter energyMeter2 = EnergyMeter.newBuilder()
                 .setDeviceId(deviceId)
                 .setVoltage(223f)
@@ -129,6 +130,7 @@ class TelemetryEventProcessorApplicationTests {
 
         telemetriesKafkaProducer.sendMessage(streamsProperties.getTelemetryInputTopic(), energyMeter2.getDeviceId(), energyMeter2);
 
+        ThreadUtils.sleep(Duration.ofSeconds(1));
         EnergyMeter energyMeter3 = EnergyMeter.newBuilder()
                 .setDeviceId(deviceId)
                 .setVoltage(231f)
@@ -142,14 +144,22 @@ class TelemetryEventProcessorApplicationTests {
 
         telemetriesKafkaProducer.sendMessage(streamsProperties.getTelemetryInputTopic(), energyMeter3.getDeviceId(), energyMeter3);
 
+
         final Properties properties = getProperties();
         try (KafkaConsumer<String, Alert> kafkaConsumer = new KafkaConsumer<>(properties)) {
             kafkaConsumer.subscribe(Collections.singletonList(streamsProperties.getAlertsOutputTopic()));
-            ConsumerRecords<String, Alert> records = kafkaConsumer.poll(Duration.of(1000, ChronoUnit.MILLIS));
+            List<ConsumerRecord<String, Alert>> records = new ArrayList<>();
+            for (int i = 0; i < 10; i++) {
+                ConsumerRecords<String, Alert> recordsAlerts = kafkaConsumer.poll(Duration.of(1000, ChronoUnit.MILLIS));
+                if (!recordsAlerts.isEmpty()) {
+                    for (ConsumerRecord<String, Alert> record : recordsAlerts) {
+                        records.add(record);
+                    }
+                }
+            }
 
-            sleep(500);
             assertFalse(records.isEmpty());
-            assertEquals(2, records.count());
+            assertEquals(2, records.size());
 
             List<Alert> receivedAlerts = new ArrayList<>();
             records.forEach(record -> {
