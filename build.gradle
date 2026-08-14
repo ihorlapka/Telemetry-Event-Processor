@@ -10,7 +10,7 @@ description = 'Service for reading telemetries and applying alerting rules to th
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
+		languageVersion = JavaLanguageVersion.of(25)
 	}
 }
 
